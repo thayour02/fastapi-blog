@@ -19,8 +19,9 @@ class User(Base):
         nullable=True,
         default=None,
     )
-
-    posts: Mapped[list[Post]] = relationship(back_populates="author")
+    # password: Mapped[str] = mapped_column(String(100), nullable=False)
+    
+    posts: Mapped[list[Post]] = relationship(back_populates="author", cascade="all, delete-orphan")
 
     @property
     def image_path(self) -> str:
