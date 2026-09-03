@@ -10,12 +10,13 @@ from fastapi.exception_handlers import (
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 import model
 from database import Base, engine, get_db
 from router import userc,postc,admin
+from config import settings
 
 
 @asynccontextmanager
@@ -30,23 +31,35 @@ async def lifespan(_app:FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# app.mount('/media', StaticFiles(directory="media", name="media"))
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/media", StaticFiles(directory="media"), name="media")
 
 template = Jinja2Templates(directory="templates")
 
-app.include_router(admin.router, prefix='/api/admin', tags=["admin"])
+app.include_router(admin.router, prefix='/admin', tags=["admin"])
 app.include_router(userc.router, prefix="/api/user", tags=["users"])
 app.include_router(postc.router, prefix="/api/post", tags=["posts"])
 
 @app.get("/", include_in_schema=False)
 async def home(request: Request, db:Annotated[AsyncSession, Depends(get_db)]):
-    result = await db.execute(select(model.Post).options(selectinload(model.Post.author)))
+    count_result = await db.execute(select(func.count()).select_from(model.Post))
+    total = count_result.scalar() or 0
+
+    result = await db.execute(select(model.Post)
+    .options(selectinload(model.Post.author))
+    .order_by(model.Post.date_posted.desc())
+    .limit(settings.posts_per_page)
+    )
+
+
     posts = result.scalars().all()
+
+    has_more = len(posts) < total
     return template.TemplateResponse(request,
     "home.html", 
-    {"posts":posts, "title":"Home"})
+    {"posts":posts, "title":"Home", "has_more":has_more})
 
 
 ## user_posts_page
@@ -90,10 +103,22 @@ async def get_post(request: Request, post_id: int, db: Annotated[AsyncSession, D
     return template.TemplateResponse(request, "post.html", {"post": post, "title": title})
 
 
+## login_page
+@app.get("/login", include_in_schema=False)
+async def login_page(request: Request):
+    return template.TemplateResponse(request, "login.html", {"title": "Login"})
 
 
+## register_page
+@app.get("/register", include_in_schema=False)
+async def register_page(request: Request):
+    return template.TemplateResponse(request, "register.html", {"title": "Register"})
 
 
+## Account_page
+@app.get("/account", include_in_schema=False)
+async def account_page(request: Request):
+    return template.TemplateResponse(request, "account.html", {"title": "Account"})
 
 
 ## StarletteHTTPException Handler

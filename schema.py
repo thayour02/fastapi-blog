@@ -10,22 +10,28 @@ class UserBase(BaseModel):
     # password: str = Field(min_length=1, max_length=100)
 
 class UserCreate(UserBase):
-    pass
+    password:str=Field(min_length=8)
 
 
-class UserResponse(UserBase):
+class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id:int
     image_file: str | None
     image_path: str
 
+class UserPrivate(UserPublic):
+    email: EmailStr
+    username: str
+
 
 class UserUpdate(BaseModel):
     username: str | None =Field(default=None,min_length=1, max_length=100)
     email: str | None =Field(default=None, max_length=100)
-    image_file:str | None =Field(default=None,min_length=1, max_length=100)
     # password: str = Field(min_length=1, max_length=100)
 
+class Token(BaseModel):
+    access_token:str
+    token_type:str
 
 class PostBase(BaseModel):
     title: str=Field(min_length=1, max_length=100)
@@ -33,7 +39,7 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
-    user_id: int
+    pass 
 
 
 class PostUpdate(BaseModel):
@@ -47,6 +53,15 @@ class PostResponse(PostBase):
     id:int
     user_id: int
     date_posted:datetime
-    author:UserResponse
+    author:UserPublic
 
 
+class PaginatedPostsResponse(BaseModel):
+    posts: list[PostResponse]
+    total: int
+    skip: int
+    limit: int
+    has_more: bool
+    # page: int
+    # page_size: int
+    # total_pages: int
