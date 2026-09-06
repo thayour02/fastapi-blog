@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block content %}
+  <div class="content-section py-3 px-4 mb-4">
+    <h2 class="mb-4">Forgot Password</h2>
+    <form id="forgotPasswordForm">
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Send Reset Link</button>
+    </form>
+    <p class="mt-3">
+      Remember your password? <a href="{{ url_for("login_page") }}">Login here</a>
+    </p>
+  </div>
+{% endblock content %}
+{% block scripts %}
+  <script type="module">
+    import { getErrorMessage, showModal } from '/static/js/utils.js';
+
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+
+    forgotPasswordForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(forgotPasswordForm);
+      const data = { email: formData.get('email') };
+
+      try {
+        const response = await fetch('/api/user/forgot-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          document.getElementById('successMessage').textContent =
+            result.message || 'If an account exists with this email, you will receive password reset instructions.';
+          showModal('successModal');
+
+          document.getElementById('successModal').addEventListener('hidden.bs.modal', () => {
+            window.location.href = '/login';
+          }, { once: true });
+        } else {
+          const error = await response.json();
+          document.getElementById('errorMessage').textContent = getErrorMessage(error);
+          showModal('errorModal');
+        }
+      } catch (error) {
+        document.getElementById('errorMessage').textContent =
+          'Network error. Please check your connection and try again.';
+        showModal('errorModal');
+      }
+    });
+  </script>
+{% endblock scripts %}

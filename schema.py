@@ -16,12 +16,12 @@ class UserCreate(UserBase):
 class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id:int
+    username: str
     image_file: str | None
     image_path: str
 
 class UserPrivate(UserPublic):
     email: EmailStr
-    username: str
 
 
 class UserUpdate(BaseModel):
@@ -65,3 +65,19 @@ class PaginatedPostsResponse(BaseModel):
     # page: int
     # page_size: int
     # total_pages: int
+
+
+
+## Password Reset Schemas
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr = Field(max_length=120)
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(min_length=8)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8)

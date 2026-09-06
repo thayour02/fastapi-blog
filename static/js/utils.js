@@ -22,3 +22,32 @@ export function hideModal(modalId) {
   const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
   if (modal) modal.hide();
 }
+
+
+// XSS prevention for dynamic content insertion
+export function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Date formatting to match server's strftime("%B %d, %Y")
+export function formatDate(dateString) {
+  if (!dateString) {
+    return "";
+  }
+  // Python datetime.isoformat() emits 6 fractional digits (microseconds),
+  // but JavaScript Date only guarantees parsing 3 digits (milliseconds).
+  // Truncate any longer fractional part while preserving the timezone.
+  const cleaned = dateString.replace(/(\.\d{3})\d*/, "$1");
+  const date = new Date(cleaned);
+  if (Number.isNaN(date.getTime())) {
+    return String(dateString);
+  }
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "2-digit",
+  });
+}
+

@@ -59,16 +59,18 @@ async def home(request: Request, db:Annotated[AsyncSession, Depends(get_db)]):
     has_more = len(posts) < total
     return template.TemplateResponse(request,
     "home.html", 
-    {"posts":posts, "title":"Home", "has_more":has_more})
+    {"posts":posts, "title":"Home",
+    "limit":settings.posts_per_page, 
+    "has_more":has_more})
 
 
 ## user_posts_page
-@app.get("/user/{user_id}/post", include_in_schema=False)
-async def get_user_posts_page(
-        request: Request,
-        user_id: int,
-        db: Annotated[AsyncSession, Depends(get_db)],
-    ):
+@app.get("/user/{user_id}/post", include_in_schema=False, name="get_user_posts_page")
+async def user_posts_page(
+    request: Request,
+    user_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
     result = await db.execute(select(model.User).where(model.User.id == user_id))
     user = result.scalars().first()
     if not user:
@@ -76,20 +78,38 @@ async def get_user_posts_page(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
+
+    count_result = await db.execute(
+        select(func.count())
+        .select_from(model.Post)
+        .where(model.Post.user_id == user_id),
+    )
+    total = count_result.scalar() or 0
+
     result = await db.execute(
         select(model.Post)
         .options(selectinload(model.Post.author))
-        .where(model.Post.user_id == user_id),
+        .where(model.Post.user_id == user_id)
+        .order_by(model.Post.date_posted.desc())
+        .limit(settings.posts_per_page),
     )
     posts = result.scalars().all()
+
+    has_more = len(posts) < total
+
     return template.TemplateResponse(
         request,
         "user_post.html",
-        {"posts": posts, "user": user, "title": f"{user.username}'s Posts"},
+        {
+            "posts": posts,
+            "user": user,
+            "title": f"{user.username}'s Posts",
+            "limit": settings.posts_per_page,
+            "has_more": has_more,
+        },
     )
-
 ## get_post (HTML page)
-@app.get('/post/{post_id}', include_in_schema=False)
+@app.get('/post/{post_id}', include_in_schema=False, name="get_post")
 async def get_post(request: Request, post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(
         select(model.Post)
@@ -119,6 +139,25 @@ async def register_page(request: Request):
 @app.get("/account", include_in_schema=False)
 async def account_page(request: Request):
     return template.TemplateResponse(request, "account.html", {"title": "Account"})
+
+@app.get("/forgot-password", include_in_schema=False)
+async def forgot_password_page(request: Request):
+    return template.TemplateResponse(
+        request,
+        "forgot_pass.html",
+        {"title": "Forgot Password"},
+    )
+
+
+@app.get("/reset-password", include_in_schema=False)
+async def reset_password_page(request: Request):
+    response = template.TemplateResponse(
+        request,
+        "reset_pass.html",
+        {"title": "Reset Password"},
+    )
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
 
 
 ## StarletteHTTPException Handler

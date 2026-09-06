@@ -17,7 +17,7 @@ USERS = [
         "username": "CoreyMSchafer",
         "email": "CoreyMSchafer@gmail.com",
         "password": "TestPassword1!",
-        "image": "corey.png",
+        "image": "default.jpg",
     },
     {
         "username": "DefaultDude",
@@ -29,25 +29,25 @@ USERS = [
         "username": "WillowTheCat",
         "email": "TestEmail3@test.com",
         "password": "TestPassword3!",
-        "image": "corey.png",
+        "image": "default.jpg",
     },
     {
         "username": "FarmDogs",
         "email": "TestEmail4@test.com",
         "password": "TestPassword4!",
-        "image": "fast.jpg",
+        "image": "default.jpg",
     },
     {
         "username": "PoppyTheCoder",
         "email": "TestEmail5@test.com",
         "password": "TestPassword5!",
-        "image": "corey.png",
+        "image": "default.jpg",
     },
     {
         "username": "GoodBoyBronx",
         "email": "TestEmail6@test.com",
         "password": "TestPassword6!",
-        "image": "fast.jpg",
+        "image": "default.jpg",
     },
 ]
 
