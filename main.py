@@ -32,7 +32,7 @@ app = FastAPI(lifespan=lifespan)
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/media", StaticFiles(directory="media"), name="media")
+# app.mount("/media", StaticFiles(directory="media"), name="media")
 
 template = Jinja2Templates(directory="templates")
 
