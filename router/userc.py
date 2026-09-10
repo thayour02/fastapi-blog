@@ -17,9 +17,8 @@ from auth import CurrentUser,verify_password,generate_reset_token,hash_reset_tok
 from PIL import UnidentifiedImageError
 from email_utils import send_password_reset_email
 from starlette.concurrency import run_in_threadpool
-from image_util import process_profile_image, delete_profile_image
-from botocore import ClientError
-from botocore.exceptions import ClientError as BotoClientError
+from image_util import process_profile_image, delete_profile_image,upload_profile_image
+from botocore.exceptions import ClientError 
 
 router = APIRouter()
 

@@ -18,8 +18,6 @@ from database import engine, get_db
 from router import userc,postc,admin
 from config import settings
 
-
-
 @asynccontextmanager
 async def lifespan(_app:FastAPI):
     yield
